@@ -1,0 +1,23 @@
+# Формирование контейнера Next.js приложения.
+FROM node:20-alpine
+
+# Инициализация рабочей директории контейнера.
+WORKDIR /app
+
+# Копирование package.json и lock-файла для установки зависимостей.
+COPY package.json package-lock.json ./
+
+# Установка зависимостей приложения.
+RUN npm ci
+
+# Копирование остальных файлов проекта.
+COPY . .
+
+# Выполнение production-сборки приложения.
+RUN npm run build
+
+# Декларация порта приложения.
+EXPOSE 3000
+
+# Запуск production-сервера Next.js.
+CMD ["npm", "start"]
