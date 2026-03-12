@@ -1,38 +1,18 @@
 // Инициализация HTTP-сервера коллектора метрик.
 import express from 'express';
 
-// Подключение middleware CORS.
-import cors from 'cors';
-
 // Подключение файловой подсистемы для журналирования JSONL.
 import fs from 'fs';
 import path from 'path';
 
 const app = express();
 
+// Инициализация парсинга JSON-тел запросов.
+app.use(express.json({limit: '2mb'}));
+
 // Инициализация параметров конфигурации коллектора.
 const PORT = Number(process.env.PORT || 8090);
 const DATA_DIR = process.env.DATA_DIR || '/data';
-
-// Формирование конфигурации политики CORS.
-const corsOptions = {
-    origin: [
-        'http://localhost:3001',
-        'http://localhost:3000',
-        'http://next-app:3000'
-    ],
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type']
-};
-
-// Подключение middleware CORS для всех маршрутов.
-app.use(cors(corsOptions));
-
-// Обработка preflight-запросов OPTIONS для всех маршрутов.
-app.options('*', cors(corsOptions));
-
-// Инициализация парсинга JSON-тел запросов.
-app.use(express.json({limit: '2mb'}));
 
 // Инициализация путей журналов.
 const RUNS_LOG = path.join(DATA_DIR, 'runs.log');
@@ -52,28 +32,39 @@ app.use((req, res, next) => {
         JSON.stringify({
             ts: new Date().toISOString(),
             method: req.method,
-            path: req.path,
-            origin: req.header('Origin') || ''
+            path: req.path
         })
     );
-
     next();
 });
 
 // Приём паспорта прогона эксперимента.
 app.post('/metrics/run', (req, res) => {
-    appendJsonLine(RUNS_LOG, {
-        ...req.body,
+    const payload = req.body || {};
+
+    const runRecord = {
+        schema_version: payload.schema_version || '1.0',
+        event_type: 'run_metadata',
+        run_id: payload.run_id || null,
+        sut_id: payload.sut_id || null,
+        mode_id: payload.mode_id || null,
+        scenario_set: payload.scenario_set || [],
+        iterations: payload.iterations || 1,
+        environment: payload.environment || {},
         _received_at: new Date().toISOString()
-    });
+    };
+
+    appendJsonLine(RUNS_LOG, runRecord);
 
     res.json({ok: true});
 });
 
 // Приём клиентских событий метрик.
 app.post('/metrics/client', (req, res) => {
+    const payload = req.body || {};
+
     appendJsonLine(METRICS_LOG, {
-        ...req.body,
+        ...payload,
         _received_at: new Date().toISOString()
     });
 
