@@ -23,11 +23,11 @@ async function postJson(url, payload) {
 
 // Формирование конфигурации текущего запуска Runner.
 const RUN_CONFIG = {
-    sutId: 'next_app',
-    modes: ['cold', 'warm'],          // cold | warm
-    iterations: 3,           // число повторов
-    regenCount: 3,           // число повторных генераций списка
-    headless: true
+    sutId: process.env.SUT_ID || 'next_app',
+    modes: (process.env.RUNNER_MODES || 'cold,warm').split(','),
+    iterations: parseInt(process.env.RUNNER_ITERATIONS || '3', 10),
+    regenCount: parseInt(process.env.RUNNER_REGEN_COUNT || '3', 10),
+    headless: process.env.RUNNER_HEADLESS !== 'false'
 };
 
 // Выполнение одной итерации сценария.

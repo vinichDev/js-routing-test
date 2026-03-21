@@ -22,7 +22,7 @@ http {
       proxy_set_header X-Run-Id $http_x_run_id;
       proxy_set_header X-Trace-Id $http_x_trace_id;
       proxy_set_header X-Sut-Id $http_x_sut_id;
-      proxy_pass http://next-app:3000;
+      proxy_pass http://${SUT_TARGET_HOST}:${SUT_TARGET_PORT};
     }
 
     location /api/ {

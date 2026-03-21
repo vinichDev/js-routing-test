@@ -1,8 +1,8 @@
 .idea
 
 # dependencies
-/node_modules
-/.pnp
+node_modules
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -11,14 +11,14 @@
 !.yarn/versions
 
 # testing
-/coverage
+coverage
 
 # next.js
-/.next/
-/out/
+.next
+out
 
 # production
-/build
+build
 
 # misc
 .DS_Store
@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/docs
+/infra/data/
+/infra/logs/
+
+/.agents/

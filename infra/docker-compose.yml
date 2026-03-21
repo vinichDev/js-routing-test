@@ -45,8 +45,12 @@ services:
     container_name: proxy
     ports:
       - "8000:80"
+    environment:
+      - SUT_TARGET_HOST=${SUT_TARGET_HOST:-next-app}
+      - SUT_TARGET_PORT=${SUT_TARGET_PORT:-3000}
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
       - ./logs/nginx:/var/log/nginx
     depends_on:
       - next-app
@@ -58,6 +62,12 @@ services:
     build:
       context: ../runner
     container_name: runner
+    environment:
+      - SUT_ID=${SUT_ID:-next_app}
+      - RUNNER_MODES=${RUNNER_MODES:-cold,warm}
+      - RUNNER_ITERATIONS=${RUNNER_ITERATIONS:-3}
+      - RUNNER_REGEN_COUNT=${RUNNER_REGEN_COUNT:-3}
+      - RUNNER_HEADLESS=${RUNNER_HEADLESS:-true}
     depends_on:
       - proxy
       - next-app
