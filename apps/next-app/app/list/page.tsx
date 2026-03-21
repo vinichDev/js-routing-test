@@ -49,6 +49,7 @@ function ListPageContent() {
     const [version, setVersion] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(false);
     const [errorText, setErrorText] = useState<string>('');
+    const [regenIndex, setRegenIndex] = useState<number>(0);
 
     // Извлечение параметров прогона из query string.
     const searchParams = useSearchParams();
@@ -71,7 +72,11 @@ function ListPageContent() {
     const t0Ref = useRef<number>(0);
 
     // Реализация загрузки списка.
-    async function loadItems(nextVersion: number, action: 'initial' | 'regen') {
+    async function loadItems(
+        nextVersion: number,
+        action: 'initial' | 'regen',
+        nextRegenIndex: number | null = null
+    ) {
         setLoading(true);
         setErrorText('');
 
@@ -124,7 +129,7 @@ function ListPageContent() {
             requestAnimationFrame(() => {
                 const tDomReady = performance.now();
 
-                // Формирование события метрик маршрутизации и регенерации.
+                // Формирование события метрик маршрутизации или регенерации.
                 const metricsPayload = {
                     schema_version: '1.0',
                     event_type: action === 'initial' ? 'route_navigation' : 'list_regeneration',
@@ -137,6 +142,7 @@ function ListPageContent() {
                     route: '/list',
                     trace_id: traceId,
                     version: json.version,
+                    regen_index: action === 'regen' ? nextRegenIndex : null,
                     marks_ms: {
                         t0_user_action: 0,
                         t_data_ready: tDataReady - t0Ref.current,
@@ -179,7 +185,11 @@ function ListPageContent() {
             <button
                 data-test="btn-regenerate"
                 disabled={loading}
-                onClick={() => loadItems(version + 1, 'regen')}
+                onClick={() => {
+                    const nextRegenIndex = regenIndex + 1;
+                    setRegenIndex(nextRegenIndex);
+                    loadItems(version + 1, 'regen', nextRegenIndex);
+                }}
             >
                 Сгенерировать новый список
             </button>

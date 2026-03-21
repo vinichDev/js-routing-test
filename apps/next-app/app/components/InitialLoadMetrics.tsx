@@ -31,6 +31,11 @@ export default function InitialLoadMetrics() {
         const modeId = searchParams.get('mode_id') || 'A';
         const iteration = Number(searchParams.get('iteration') || '1');
 
+        // Ограничение сбора initial_load только cold-режимом.
+        if (modeId !== 'cold') {
+            return;
+        }
+
         let fcpValue: number | null = null;
         let lcpValue: number | null = null;
         let longTaskCount = 0;
@@ -80,7 +85,9 @@ export default function InitialLoadMetrics() {
 
             sentRef.current = true;
 
-            const navigationEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+            const navigationEntry = performance.getEntriesByType('navigation')[0] as
+                | PerformanceNavigationTiming
+                | undefined;
             const resourceEntries = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
 
             const jsResources = resourceEntries.filter((entry) => entry.name.includes('.js'));
