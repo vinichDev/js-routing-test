@@ -1,0 +1,28 @@
+---
+// Корневой layout — передаёт параметры прогона в data-атрибуты и подключает initial-load-metrics.
+interface Props {
+    title?: string;
+}
+const { title = 'Тестовый стенд — Astro' } = Astro.props;
+---
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <link rel="stylesheet" href="/shared/global.css" />
+</head>
+<body>
+    <div class="layout-container">
+        <header class="app-header">
+            <h1 class="app-title">Тестовый стенд</h1>
+            <div class="framework-badge">Astro</div>
+            <div class="routing-tech">Astro MPA (SSR, full-page reload)</div>
+        </header>
+        <slot />
+    </div>
+    <script>
+        import '../scripts/initial-load-metrics.js';
+    </script>
+</body>
+</html>

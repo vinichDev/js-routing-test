@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    // ─── Среда выполнения ──────────────────────────────────────────────────
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+
+    // ─── JSX: используем автоматический transform через Remix jsx-runtime ──
+    // «react-jsx» — современный автоматический режим (не нужно импортировать h)
+    "jsx": "react-jsx",
+    // Указываем TypeScript, что jsx-runtime берём из Remix, а не из React
+    "jsxImportSource": "remix/component",
+
+    // ─── Строгость ────────────────────────────────────────────────────────
+    "strict": true,
+    "skipLibCheck": true,
+
+    // ─── Совместимость модулей ─────────────────────────────────────────────
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+
+    // ─── Вывод ────────────────────────────────────────────────────────────
+    // Транспиляцией занимается esbuild, tsc используется только для проверки типов
+    "noEmit": true,
+
+    // ─── Пути ─────────────────────────────────────────────────────────────
+    "baseUrl": "."
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "build"]
+}

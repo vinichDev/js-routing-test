@@ -1,56 +1,30 @@
-'use client';
+// Главная страница — **Server Component** (без 'use client').
+// Next.js App Router: searchParams доступны через props на сервере.
+import type { Metadata } from 'next';
+import HomeContent from './components/HomeContent';
+import { SUT_ID, FRAMEWORK_NAME } from './lib/constants';
+import type { RunParams } from './lib/types';
 
-// Формирование главной страницы приложения с пробросом параметров прогона.
-import Link from 'next/link';
-import {Suspense} from 'react';
-import {useSearchParams} from 'next/navigation';
-import InitialLoadMetrics from './components/InitialLoadMetrics';
+// Next.js Metadata API — мета-теги генерируются на сервере (SEO, document title).
+export const metadata: Metadata = {
+    title: `Тестовый стенд — ${FRAMEWORK_NAME}`,
+    description: `SUT ${SUT_ID}: тестирование производительности маршрутизации`,
+};
 
-// Формирование внешнего компонента страницы с Suspense boundary.
-export default function HomePage() {
-    return (
-        <Suspense fallback={<main data-test="page-home-loading">Загрузка главной страницы...</main>}>
-            <HomePageContent/>
-        </Suspense>
-    );
-}
-
-// Реализация основного содержимого главной страницы.
-function HomePageContent() {
-    const searchParams = useSearchParams();
-
-    const runId = searchParams.get('run_id');
-    const modeId = searchParams.get('mode_id');
-    const iteration = searchParams.get('iteration');
-
-    const listHref = {
-        pathname: '/list',
-        query: {
-            ...(
-                runId ? {run_id: runId} : {}
-            ),
-            ...(
-                modeId ? {mode_id: modeId} : {}
-            ),
-            ...(
-                iteration ? {iteration} : {}
-            )
-        }
+// Server Component: получает searchParams на сервере без клиентского JS.
+export default async function HomePage({
+    searchParams,
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+    // Извлечение параметров прогона из query string на сервере.
+    const params = await searchParams;
+    const runParams: RunParams = {
+        runId: (params.run_id as string) || null,
+        modeId: (params.mode_id as string) || 'manual',
+        iteration: Number(params.iteration || '1'),
     };
 
-    return (
-        <main data-test="page-home">
-            <InitialLoadMetrics/>
-
-            <h1>Тестовый стенд</h1>
-            <p>Фреймворк: Next.js App Router</p>
-            <p>SUT: next_app</p>
-
-            <nav>
-                <Link href={listHref} data-test="link-to-list">
-                    Перейти к списку
-                </Link>
-            </nav>
-        </main>
-    );
+    // Передача параметров в клиентский компонент через props.
+    return <HomeContent runParams={runParams} />;
 }

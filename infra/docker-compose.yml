@@ -31,10 +31,161 @@ services:
       args:
         NEXT_PUBLIC_SUT_ID: next_app
     container_name: next-app
+    profiles: ["next-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
     ports:
       - "3001:3000"
     environment:
       NEXT_PUBLIC_SUT_ID: next_app
+    depends_on:
+      - data-api
+      - metrics-collector
+
+  # Инициализация SUT приложения на Remix.
+  remix-app:
+    build:
+      context: ../apps/remix-app
+      args:
+        REMIX_PUBLIC_SUT_ID: remix_app
+    container_name: remix-app
+    profiles: ["remix-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3002:3000"
+    environment:
+      REMIX_PUBLIC_SUT_ID: remix_app
+    depends_on:
+      - data-api
+      - metrics-collector
+
+  # Инициализация SUT приложения на Remix v3 (alpha, Preact-based).
+  remix3-app:
+    build:
+      context: ../apps/remix3-app
+      args:
+        SUT_ID: remix3_app
+    container_name: remix3-app
+    profiles: ["remix3-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3003:3000"
+    environment:
+      SUT_ID: remix3_app
+    depends_on:
+      - data-api
+      - metrics-collector
+
+  # Инициализация SUT приложения на Vanilla JS (Baseline).
+  vanilla-app:
+    build:
+      context: ../apps/vanilla-app
+      args:
+        SUT_ID: vanilla_app
+    container_name: vanilla-app
+    profiles: ["vanilla-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3004:3000"
+    environment:
+      SUT_ID: vanilla_app
+    depends_on:
+      - data-api
+      - metrics-collector
+
+  # Инициализация SUT приложения на SvelteKit.
+  svelte-app:
+    build:
+      context: ../apps/svelte-app
+      args:
+        SUT_ID: svelte_app
+    container_name: svelte-app
+    profiles: ["svelte-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3005:3000"
+    environment:
+      SUT_ID: svelte_app
+      DATA_API_URL: http://data-api:8080
+    depends_on:
+      - data-api
+      - metrics-collector
+
+  # Инициализация SUT приложения на React Router v7.
+  react-router-app:
+    build:
+      context: ../apps/react-router-app
+      args:
+        RR_PUBLIC_SUT_ID: react_router_app
+    container_name: react-router-app
+    profiles: ["react-router-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3006:3000"
+    environment:
+      RR_PUBLIC_SUT_ID: react_router_app
+      DATA_API_URL: http://data-api:8080
+    depends_on:
+      - data-api
+      - metrics-collector
+
+  # Инициализация SUT приложения на Next.js Pages Router.
+  next-pages-app:
+    build:
+      context: ../apps/next-pages-app
+      args:
+        NEXT_PUBLIC_SUT_ID: next_pages_app
+    container_name: next-pages-app
+    profiles: ["next-pages-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3007:3000"
+    environment:
+      NEXT_PUBLIC_SUT_ID: next_pages_app
+      DATA_API_URL: http://data-api:8080
+    depends_on:
+      - data-api
+      - metrics-collector
+
+  # Инициализация SUT приложения на Astro MPA.
+  astro-app:
+    build:
+      context: ../apps/astro-app
+      args:
+        SUT_ID: astro_app
+    container_name: astro-app
+    profiles: ["astro-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3008:3000"
+    environment:
+      SUT_ID: astro_app
+      DATA_API_URL: http://data-api:8080
+      HOST: 0.0.0.0
+      PORT: 3000
     depends_on:
       - data-api
       - metrics-collector
@@ -52,24 +203,25 @@ services:
     volumes:
       - ./nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
       - ./logs/nginx:/var/log/nginx
+      - ./shared-static:/usr/share/nginx/html/shared:ro
     depends_on:
-      - next-app
       - data-api
       - metrics-collector
 
-  # Инициализация контейнера раннера для запуска вручную.
+  # Runner запускается только через `docker compose run --rm runner` (profiles предотвращает
+  # автозапуск при `docker compose up -d`, но docker compose run игнорирует profiles).
   runner:
     build:
       context: ../runner
     container_name: runner
+    profiles: ["runner"]
     environment:
-      - SUT_ID=${SUT_ID:-next_app}
+      - SUT_ID=${SUT_ID:-next_app,remix_app,remix3_app,vanilla_app}
       - RUNNER_MODES=${RUNNER_MODES:-cold,warm}
       - RUNNER_ITERATIONS=${RUNNER_ITERATIONS:-3}
       - RUNNER_REGEN_COUNT=${RUNNER_REGEN_COUNT:-3}
       - RUNNER_HEADLESS=${RUNNER_HEADLESS:-true}
     depends_on:
       - proxy
-      - next-app
       - data-api
       - metrics-collector

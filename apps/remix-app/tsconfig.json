@@ -1,0 +1,28 @@
+{
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".vite/types/**/*.d.ts"
+  ],
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "target": "ESNext",
+    "strict": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./app/*"]
+    },
+    // Remix v3 single fetch types
+    "types": ["@remix-run/node", "vite/client"],
+    "noEmit": true
+  }
+}

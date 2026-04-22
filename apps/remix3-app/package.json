@@ -1,0 +1,22 @@
+{
+  "name": "remix3-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node build/server.js",
+    "dev": "npm run build && node build/server.js",
+    "build": "npm run build:server && npm run build:client",
+    "build:server": "esbuild src/server.ts src/routes/*.tsx src/components/*.tsx src/lib/*.ts src/assets/ListPage.tsx --outbase=src --outdir=build --format=esm --jsx=automatic --jsx-import-source=remix/component",
+    "build:client": "esbuild src/assets/entry.ts src/assets/ListPage.tsx src/assets/initial-load-metrics.ts src/assets/metrics.ts --outdir=public/assets --bundle --splitting --format=esm --jsx=automatic --jsx-import-source=remix/component --entry-names='[name]' --chunk-names='chunks/[name]-[hash]'",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "remix": "3.0.0-alpha.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.20.0",
+    "typescript": "^5",
+    "@types/node": "^20"
+  }
+}

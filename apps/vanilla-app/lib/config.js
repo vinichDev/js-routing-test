@@ -1,0 +1,16 @@
+// Конфигурация SUT-приложения Vanilla JS из переменных окружения.
+
+// Идентификатор тестируемого приложения.
+export const SUT_ID = process.env.SUT_ID || 'vanilla_app';
+
+// HTTP-порт сервера.
+export const PORT = Number(process.env.PORT || 3000);
+
+// Человекочитаемое название фреймворка для UI.
+export const FRAMEWORK_NAME = 'Vanilla JS';
+
+// Ожидаемое количество элементов списка для assertions.
+export const LIST_ITEMS_EXPECTED = 1000;
+
+// Версия схемы метрик.
+export const METRICS_SCHEMA_VERSION = '1.0';
