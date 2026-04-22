@@ -190,6 +190,48 @@ services:
       - data-api
       - metrics-collector
 
+  # Инициализация SUT приложения на TanStack Start.
+  tanstack-app:
+    build:
+      context: ../apps/tanstack-app
+      args:
+        VITE_SUT_ID: tanstack_app
+    container_name: tanstack-app
+    profiles: ["tanstack-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3009:3000"
+    environment:
+      VITE_SUT_ID: tanstack_app
+      DATA_API_URL: http://data-api:8080
+    depends_on:
+      - data-api
+      - metrics-collector
+
+  # Инициализация SUT приложения на SolidStart.
+  solidstart-app:
+    build:
+      context: ../apps/solidstart-app
+      args:
+        VITE_SUT_ID: solidstart_app
+    container_name: solidstart-app
+    profiles: ["solidstart-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3010:3000"
+    environment:
+      VITE_SUT_ID: solidstart_app
+      DATA_API_URL: http://data-api:8080
+    depends_on:
+      - data-api
+      - metrics-collector
+
   # Инициализация прокси для централизованного access-логирования.
   proxy:
     image: nginx:stable
