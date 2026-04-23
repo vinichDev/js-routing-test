@@ -255,6 +255,27 @@ services:
       - data-api
       - metrics-collector
 
+  # Инициализация SUT приложения на Qwik (Resumability, SPA router).
+  qwik-app:
+    build:
+      context: ../apps/qwik-app
+      args:
+        VITE_SUT_ID: qwik_app
+    container_name: qwik-app
+    profiles: ["qwik-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3012:3000"
+    environment:
+      VITE_SUT_ID: qwik_app
+      DATA_API_URL: http://data-api:8080
+    depends_on:
+      - data-api
+      - metrics-collector
+
   # Инициализация прокси для централизованного access-логирования.
   proxy:
     image: nginx:stable

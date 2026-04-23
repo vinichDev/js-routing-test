@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-A performance benchmarking suite that compares 11 JavaScript web frameworks (Next.js App Router, Next.js Pages Router, Remix v2, Remix v3 alpha, React Router v7, SvelteKit, Vanilla JS, Astro, TanStack Start, SolidStart, Astro VT) across routing scenarios. The test runner uses Playwright to automate browser interactions and collects Web Vitals metrics (FCP, LCP, TTFB, navigation timing, list regeneration latency).
+A performance benchmarking suite that compares 12 JavaScript web frameworks (Next.js App Router, Next.js Pages Router, Remix v2, Remix v3 alpha, React Router v7, SvelteKit, Vanilla JS, Astro, TanStack Start, SolidStart, Astro VT, Qwik) across routing scenarios. The test runner uses Playwright to automate browser interactions and collects Web Vitals metrics (FCP, LCP, TTFB, navigation timing, list regeneration latency).
 
 ## Running Tests
 
@@ -26,6 +26,7 @@ cd infra && bash run-benchmarks.sh
 ./run-test.sh tanstack-app cold,warm
 ./run-test.sh solidstart-app cold,warm
 ./run-test.sh astro-vt-app cold,warm
+./run-test.sh qwik-app cold,warm
 
 # Switch the active SUT without running tests
 ./switch-sut.sh next-app
@@ -36,7 +37,7 @@ python3 analyze_metrics.py --all        # compare latest run per SUT
 python3 analyze_metrics.py --run-id ID  # specific run
 ```
 
-SUT profiles: `next-app` | `remix-app` | `remix3-app` | `vanilla-app` | `svelte-app` | `react-router-app` | `next-pages-app` | `astro-app` | `tanstack-app` | `solidstart-app` | `astro-vt-app`
+SUT profiles: `next-app` | `remix-app` | `remix3-app` | `vanilla-app` | `svelte-app` | `react-router-app` | `next-pages-app` | `astro-app` | `tanstack-app` | `solidstart-app` | `astro-vt-app` | `qwik-app`
 
 ## Per-App Commands
 
@@ -55,6 +56,7 @@ Each app under `apps/` is independent. Install and run separately.
 | `apps/tanstack-app` | `vite dev` | `vite build` | `node .output/server/index.mjs` |
 | `apps/solidstart-app` | `npm run dev` | `npm run build` | `npm start` |
 | `apps/astro-vt-app` | `npm run dev` | `npm run build` | `npm start` |
+| `apps/qwik-app` | `npm run dev` | `npm run build` | `node server/entry.express.js` |
 
 Remix v2 and Remix v3 also have `npm run typecheck`. Remix v3 has separate `npm run build:server` / `npm run build:client`. React Router v7 and Next.js Pages Router also have `npm run typecheck`.
 
@@ -113,6 +115,7 @@ Nginx Proxy :8000 (infra/nginx.conf.template)
 | tanstack-app | 3009 | `tanstack_app` |
 | solidstart-app | 3010 | `solidstart_app` |
 | astro-vt-app | 3011 | `astro_vt_app` |
+| qwik-app | 3012 | `qwik_app` |
 
 ## Adding a New SUT
 
