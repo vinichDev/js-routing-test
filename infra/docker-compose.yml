@@ -283,7 +283,7 @@ services:
     environment:
       - SUT_ID=${SUT_ID:-next_app,remix_app,remix3_app,vanilla_app}
       - RUNNER_MODES=${RUNNER_MODES:-cold,warm}
-      - RUNNER_ITERATIONS=${RUNNER_ITERATIONS:-3}
+      - RUNNER_ITERATIONS=${RUNNER_ITERATIONS:-5}
       - RUNNER_REGEN_COUNT=${RUNNER_REGEN_COUNT:-3}
       - RUNNER_HEADLESS=${RUNNER_HEADLESS:-true}
     depends_on:
