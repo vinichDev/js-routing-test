@@ -1,6 +1,6 @@
 ---
 // Корневой layout Astro VT — добавляет <ViewTransitions /> для SPA-навигации.
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
 interface Props {
     title?: string;
 }
@@ -12,7 +12,7 @@ const { title = 'Тестовый стенд — Astro VT' } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <link rel="stylesheet" href="/shared/global.css" />
-    <ViewTransitions />
+    <ClientRouter />
 </head>
 <body>
     <div class="layout-container">
