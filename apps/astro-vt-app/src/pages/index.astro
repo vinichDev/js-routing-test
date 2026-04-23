@@ -1,0 +1,33 @@
+---
+// Главная страница Astro VT.
+import Layout from '../layouts/Layout.astro';
+
+const { searchParams } = Astro.url;
+const runId = searchParams.get('run_id') || '';
+const modeId = searchParams.get('mode_id') || 'manual';
+const iteration = Number(searchParams.get('iteration') || '1');
+const sutId = import.meta.env.SUT_ID || 'astro_vt_app';
+
+const listUrl = `/list?run_id=${runId}&mode_id=${modeId}&iteration=${iteration}`;
+---
+<Layout title="Главная — Astro VT">
+    <main
+        data-test="page-home"
+        data-sut-id={sutId}
+        data-run-id={runId}
+        data-mode-id={modeId}
+        data-iteration={iteration}
+    >
+        <div class="home-content">
+            <h2>Добро пожаловать в тестовый стенд</h2>
+            <p>Нажмите кнопку ниже, чтобы перейти к странице со списком из 1000 элементов.</p>
+            <a
+                href={listUrl}
+                class="btn-primary"
+                data-test="link-to-list"
+            >
+                Перейти к списку
+            </a>
+        </div>
+    </main>
+</Layout>

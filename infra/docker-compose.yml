@@ -232,6 +232,29 @@ services:
       - data-api
       - metrics-collector
 
+  # Инициализация SUT приложения на Astro MPA + View Transitions.
+  astro-vt-app:
+    build:
+      context: ../apps/astro-vt-app
+      args:
+        SUT_ID: astro_vt_app
+    container_name: astro-vt-app
+    profiles: ["astro-vt-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3011:3000"
+    environment:
+      SUT_ID: astro_vt_app
+      DATA_API_URL: http://data-api:8080
+      HOST: 0.0.0.0
+      PORT: 3000
+    depends_on:
+      - data-api
+      - metrics-collector
+
   # Инициализация прокси для централизованного access-логирования.
   proxy:
     image: nginx:stable

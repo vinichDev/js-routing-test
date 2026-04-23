@@ -1,0 +1,104 @@
+// Сбор метрик первичной загрузки страницы (initial_load) и поддержка VT-навигации.
+// С ViewTransitions модуль загружается один раз; все повторные события обрабатываются
+// через astro:page-load / astro:before-swap.
+import { sendInitialLoadMetricsEvent } from './metrics.js';
+
+// Метка времени (Date.now) момента, когда Astro завершил fetch новой страницы
+// и готовится вставить её в DOM. Используется в list-page.js для вычисления tDataReady.
+window.__vtDataReadyTime = null;
+
+// astro:before-swap fires after the new page HTML is fetched but before DOM replacement.
+document.addEventListener('astro:before-swap', () => {
+    window.__vtDataReadyTime = Date.now();
+});
+
+// Захват момента клика на link-to-list (для NAV-метрики).
+// Обработчик живёт на document — переживает VT-навигацию.
+document.addEventListener('click', function (e) {
+    const target = e.target.closest('[data-test="link-to-list"]');
+    if (target) {
+        sessionStorage.setItem('nav_t0', String(Date.now()));
+    }
+});
+
+// PerformanceObserver-переменные — инициализируются один раз для исходной загрузки.
+let fcpValue = null;
+let lcpValue = null;
+let longTaskCount = 0;
+let longTaskTotal = 0;
+let longTaskMax = 0;
+
+try {
+    const paintObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+            if (entry.name === 'first-contentful-paint') fcpValue = entry.startTime;
+        }
+    });
+    paintObserver.observe({ type: 'paint', buffered: true });
+} catch (e) {
+    console.error('Paint observer failed', e);
+}
+
+try {
+    const lcpObserver = new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        const lastEntry = entries[entries.length - 1];
+        if (lastEntry) lcpValue = lastEntry.startTime;
+    });
+    lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+} catch (e) {
+    console.error('LCP observer failed', e);
+}
+
+try {
+    const longTaskObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+            longTaskCount += 1;
+            longTaskTotal += entry.duration;
+            longTaskMax = Math.max(longTaskMax, entry.duration);
+        }
+    });
+    longTaskObserver.observe({ type: 'longtask', buffered: true });
+} catch (e) {
+    console.error('LongTask observer failed', e);
+}
+
+// astro:page-load fires on initial load and after each VT navigation.
+document.addEventListener('astro:page-load', function () {
+    const mainEl =
+        document.querySelector('[data-test="page-home"]') ||
+        document.querySelector('[data-test="page-list"]');
+    if (!mainEl) return;
+
+    const modeId = mainEl.dataset.modeId || 'manual';
+    if (modeId === 'warmup') return;
+
+    // При VT-навигации на /list — метрику initial_load не отправляем:
+    // list-page.js отправит route_navigation_spa с точным замером.
+    const isVtNavToList =
+        window.__vtDataReadyTime !== null &&
+        !!document.querySelector('[data-test="page-list"]');
+    if (isVtNavToList) return;
+
+    const sutId = mainEl.dataset.sutId || 'astro_vt_app';
+    const runId = mainEl.dataset.runId || null;
+    const iteration = Number(mainEl.dataset.iteration || '1');
+
+    const navigationEntry = performance.getEntriesByType('navigation')[0];
+    const resourceEntries = performance.getEntriesByType('resource');
+
+    sendInitialLoadMetricsEvent({
+        runId,
+        sutId,
+        modeId,
+        iteration,
+        route: window.location.pathname,
+        fcp: fcpValue,
+        lcp: lcpValue,
+        longTaskCount,
+        longTaskTotal,
+        longTaskMax,
+        navigationEntry,
+        resourceEntries,
+    });
+});

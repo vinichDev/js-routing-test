@@ -7,12 +7,12 @@ SUT=$1
 
 if [ -z "$SUT" ]; then
   echo "Ошибка: Укажите SUT для переключения."
-  echo "Использование: ./switch-sut.sh <next-app|remix-app|remix3-app|vanilla-app|svelte-app|react-router-app|next-pages-app|astro-app|tanstack-app|solidstart-app>"
+  echo "Использование: ./switch-sut.sh <next-app|remix-app|remix3-app|vanilla-app|svelte-app|react-router-app|next-pages-app|astro-app|tanstack-app|solidstart-app|astro-vt-app>"
   exit 1
 fi
 
 echo "Останавливаем все SUT..."
-docker rm -f next-app remix-app remix3-app vanilla-app svelte-app react-router-app next-pages-app astro-app tanstack-app solidstart-app 2>/dev/null || true
+docker rm -f next-app remix-app remix3-app vanilla-app svelte-app react-router-app next-pages-app astro-app tanstack-app solidstart-app astro-vt-app 2>/dev/null || true
 
 echo "Запускаем $SUT..."
 COMPOSE_PROFILES=$SUT docker compose up --build -d

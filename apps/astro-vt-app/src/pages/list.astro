@@ -1,0 +1,124 @@
+---
+// Страница списка Astro VT — серверная загрузка 1000 элементов и клиентская регенерация.
+import Layout from '../layouts/Layout.astro';
+
+const { searchParams } = Astro.url;
+const runId = searchParams.get('run_id') || '';
+const modeId = searchParams.get('mode_id') || 'manual';
+const iteration = Number(searchParams.get('iteration') || '1');
+const isDirectLoad = searchParams.get('direct_load') === 'true';
+const sutId = import.meta.env.SUT_ID || 'astro_vt_app';
+
+const traceId = `trace-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const dataApiUrl = import.meta.env.DATA_API_URL || 'http://data-api:8080';
+
+let items: Array<{ id: string; title: string; description: string; group: string; value: number }> = [];
+let version = 0;
+let loadError = false;
+
+try {
+    const resp = await fetch(`${dataApiUrl}/api/items?version=0`, {
+        headers: {
+            'X-Trace-Id': traceId,
+            'X-Run-Id': runId,
+            'X-Sut-Id': sutId,
+        },
+    });
+    if (!resp.ok) throw new Error(`Data API responded with ${resp.status}`);
+    const data = await resp.json();
+    items = data.items;
+    version = data.version;
+} catch (err) {
+    console.error('Astro VT list page: Data API error', err);
+    loadError = true;
+}
+---
+<Layout title="Список элементов — Astro VT">
+    <main
+        data-test="page-list"
+        data-sut-id={sutId}
+        data-run-id={runId}
+        data-mode-id={modeId}
+        data-iteration={iteration}
+    >
+        <div class="list-controls">
+            <div>
+                <h2>Данные</h2>
+                <p class="items-stat" data-test="items-count">Элементов: {items.length}</p>
+            </div>
+            <button
+                class="btn-primary"
+                data-test="btn-regenerate"
+                type="button"
+            >
+                Сгенерировать новый список
+            </button>
+        </div>
+
+        <div
+            class="status-msg status-loading"
+            data-test="loading-state"
+            style="display: none"
+        >
+            Загрузка...
+        </div>
+        <div
+            class="status-msg status-error"
+            data-test="error-state"
+            style="display: none"
+        >
+        </div>
+
+        {loadError && (
+            <p style="color: red">Ошибка загрузки данных с сервера. Проверьте Data API.</p>
+        )}
+
+        <div
+            class="list-container"
+            data-test="list-container"
+            data-version={version}
+            data-loader-trace={traceId}
+        >
+            {items.map((item) => (
+                <div class="list-item-card" data-test="list-item" data-id={item.id}>
+                    <div class="item-avatar">{item.title.charAt(0)}</div>
+                    <div class="item-content">
+                        <h3 class="item-title">{item.title}</h3>
+                        <p class="item-desc">{item.description}</p>
+                        <div class="item-meta">
+                            <span class="item-badge">{item.group}</span>
+                            <span class="item-value">Value: {item.value}</span>
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-icon" aria-label="Action 1">🔧</button>
+                        <button class="btn-icon" aria-label="Action 2">🗑</button>
+                    </div>
+                </div>
+            ))}
+        </div>
+
+        <!-- Template для клиентской регенерации -->
+        <template id="list-item-template">
+            <div class="list-item-card" data-test="list-item">
+                <div class="item-avatar"></div>
+                <div class="item-content">
+                    <h3 class="item-title"></h3>
+                    <p class="item-desc"></p>
+                    <div class="item-meta">
+                        <span class="item-badge"></span>
+                        <span class="item-value"></span>
+                    </div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-icon" aria-label="Action 1">🔧</button>
+                    <button class="btn-icon" aria-label="Action 2">🗑</button>
+                </div>
+            </div>
+        </template>
+    </main>
+
+    <script>
+        import '../scripts/list-page.js';
+    </script>
+</Layout>
