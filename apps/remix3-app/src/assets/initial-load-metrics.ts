@@ -22,6 +22,11 @@ import { sendInitialLoadMetricsEvent } from './metrics.js';
     // Ограничение сбора initial_load: разрешаем cold и warm, но игнорируем warmup.
     if (modeId === 'warmup') return;
 
+    // MPA SUT: при click-through навигации home→list nav_t0 присутствует в sessionStorage.
+    // В этом случае пропускаем initial_load — NAV-метрика уже покрывает этот переход.
+    // Это предотвращает Cnt:6 (click-through + direct load) вместо корректного Cnt:3.
+    if (document.querySelector('[data-test="page-list"]') && sessionStorage.getItem('nav_t0') !== null) return;
+
     // Инициализация переменных метрик.
     let fcpValue: number | null = null;
     let lcpValue: number | null = null;
