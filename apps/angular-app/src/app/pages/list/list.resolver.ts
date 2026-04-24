@@ -4,7 +4,7 @@
 import { inject, PLATFORM_ID } from '@angular/core';
 import { ResolveFn } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { TransferState, makeStateKey } from '@angular/platform-browser';
+import { TransferState, makeStateKey } from '@angular/core';
 import { isPlatformServer } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { DATA_API_BASE_URL, SUT_ID } from '../../lib/constants';
@@ -19,7 +19,7 @@ export const listResolver: ResolveFn<ListLoaderData> = async (route) => {
     const platformId = inject(PLATFORM_ID);
 
     const runId = route.queryParamMap.get('run_id') || '';
-    const modeId = route.queryParamMap.get('mode') || 'manual';
+    const modeId = route.queryParamMap.get('mode_id') || 'manual';
     const iteration = parseInt(route.queryParamMap.get('iteration') || '1', 10);
 
     // Клиент при гидратации: берём данные из SSR TransferState (нет повторного запроса).

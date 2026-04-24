@@ -30,7 +30,7 @@ export class AppComponent {
         // Срабатывает один раз после первой отрисовки в браузере (после гидратации).
         afterNextRender(() => {
             const url = new URL(window.location.href);
-            const modeId = url.searchParams.get('mode') || 'manual';
+            const modeId = url.searchParams.get('mode_id') || 'manual';
             if (modeId === 'warmup') return;
 
             // SPA guard: если пришли на /list через SPA-навигацию — nav_t0 уже в sessionStorage.
