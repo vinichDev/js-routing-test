@@ -16,7 +16,7 @@ rm -f data/*.log
 echo "   Логи в ./data/ очищены."
 
 # 2. Список SUT для тестирования
-SUTS=("next-app" "remix-app" "remix3-app" "vanilla-app" "svelte-app" "react-router-app" "next-pages-app" "astro-app" "tanstack-app" "solidstart-app" "astro-vt-app" "qwik-app" "nuxt-app")
+SUTS=("next-app" "remix-app" "remix3-app" "vanilla-app" "svelte-app" "react-router-app" "next-pages-app" "astro-app" "tanstack-app" "solidstart-app" "astro-vt-app" "qwik-app" "nuxt-app" "angular-app")
 
 # 3. Последовательный запуск для каждого SUT
 for SUT in "${SUTS[@]}"; do

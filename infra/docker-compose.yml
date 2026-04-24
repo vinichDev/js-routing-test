@@ -295,6 +295,24 @@ services:
       - data-api
       - metrics-collector
 
+  # Инициализация SUT приложения на Angular 19 (SSR + SPA Navigation).
+  angular-app:
+    build:
+      context: ../apps/angular-app
+    container_name: angular-app
+    profiles: ["angular-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3014:3000"
+    environment:
+      DATA_API_URL: http://data-api:8080
+    depends_on:
+      - data-api
+      - metrics-collector
+
   # Инициализация прокси для централизованного access-логирования.
   proxy:
     image: nginx:stable
