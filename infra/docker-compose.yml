@@ -276,6 +276,25 @@ services:
       - data-api
       - metrics-collector
 
+  # Инициализация SUT приложения на Nuxt 3 (Vue 3, SSR + SPA Navigation).
+  nuxt-app:
+    build:
+      context: ../apps/nuxt-app
+    container_name: nuxt-app
+    profiles: ["nuxt-app"]
+    networks:
+      default:
+        aliases:
+          - sut-app
+    ports:
+      - "3013:3000"
+    environment:
+      NUXT_DATA_API_URL: http://data-api:8080
+      DATA_API_URL: http://data-api:8080
+    depends_on:
+      - data-api
+      - metrics-collector
+
   # Инициализация прокси для централизованного access-логирования.
   proxy:
     image: nginx:stable
