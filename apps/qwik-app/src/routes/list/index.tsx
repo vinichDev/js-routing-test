@@ -11,6 +11,11 @@ import { sendRouteNavigationMetrics, sendListRegenerationMetrics } from '~/lib/m
 // =============================================================================
 // SSR loader: запускается на сервере при каждом запросе (SPA-nav и direct load).
 // Qwik сериализует результат в HTML — браузер "возобновляет" без повторного fetch.
+//
+// ВАЖНО: items хранятся как JSON-строка (itemsJson), а не как массив объектов.
+// Причина: Qwik v1 выбрасывает Error Code(3) при попытке сериализовать 1000 объектов
+// в qwik/json state. Строка сериализуется без ошибок. Клиент вызывает JSON.parse()
+// при необходимости (перерисовка после regen или SPA-навигации).
 // =============================================================================
 export const useListData = routeLoader$(async (requestEv) => {
     const DATA_API_URL = requestEv.env.get('DATA_API_URL') || 'http://data-api:8080';
@@ -26,10 +31,10 @@ export const useListData = routeLoader$(async (requestEv) => {
         });
         if (!resp.ok) throw new Error(`Data API ${resp.status}`);
         const data = await resp.json() as { items: Item[]; version: number };
-        return { items: data.items, version: data.version, traceId, runId, modeId, iteration };
+        return { itemsJson: JSON.stringify(data.items), version: data.version, traceId, runId, modeId, iteration };
     } catch (e) {
         console.error('routeLoader$ failed', e);
-        return { items: [] as Item[], version: 0, traceId, runId, modeId, iteration };
+        return { itemsJson: '[]', version: 0, traceId, runId, modeId, iteration };
     }
 });
 
@@ -44,20 +49,26 @@ export default component$(() => {
     const loading = useSignal(false);
     const errorText = useSignal('');
 
-    // Производные: regen-данные перекрывают SSR-данные
-    const items = () => regenItems.value ?? loaderData.value.items;
+    // Производные: regen-данные перекрывают SSR-данные.
+    // JSON.parse вызывается только при реактивном перерисовке (после regen или SPA-nav),
+    // но не при прямой загрузке — Qwik сохраняет SSR HTML до первого изменения сигнала.
+    const items = () => regenItems.value ?? JSON.parse(loaderData.value.itemsJson ?? '[]') as Item[];
     const version = () => regenVersion.value ?? loaderData.value.version;
 
     // ==========================================================================
     // NAV-метрика: запускается при монтировании компонента в браузере.
-    // Для SPA-навигации (QwikCity) — список монтируется впервые в браузере.
-    // Для direct load — аналогично (resumability не перезапускает код).
+    // Для SPA-навигации — список монтируется впервые в браузере.
+    // Для direct load — Qwik resumability активирует через IntersectionObserver.
     // ==========================================================================
     useVisibleTask$(() => {
         const data = loaderData.value;
-        if (!data?.items?.length) return;
-        const modeId = loc.url.searchParams.get('mode_id') || data.modeId;
+        const modeId = loc.url.searchParams.get('mode_id') || data?.modeId || 'manual';
         if (modeId === 'warmup') return;
+
+        // Считаем элементы из DOM: SSR уже вставил 1000 элементов, SPA-навигация тоже.
+        // loaderData.itemsJson не нужен здесь — достаточно факта наличия элементов в DOM.
+        const listItems = document.querySelectorAll('[data-test="list-item"]');
+        if (!listItems.length) return;
 
         requestAnimationFrame(() => {
             const tNow = performance.now();
@@ -77,18 +88,18 @@ export default component$(() => {
             if (t0Click !== null) sessionStorage.removeItem('nav_t0');
 
             sendRouteNavigationMetrics({
-                runId: data.runId,
-                modeId: data.modeId,
-                iteration: data.iteration,
+                runId: data?.runId || null,
+                modeId,
+                iteration: data?.iteration || 1,
                 isDirectLoad,
-                traceId: data.traceId,
-                version: data.version,
+                traceId: data?.traceId || createId('trace'),
+                version: data?.version || 0,
                 navDuration,
                 tDataReadyMs,
-                itemsCount: data.items.length,
+                itemsCount: listItems.length,
             });
         });
-    }, { strategy: 'document-ready' });
+    });
 
     // ==========================================================================
     // Регенерация: клиентский fetch к Data API, затем обновление сигналов.
@@ -103,7 +114,7 @@ export default component$(() => {
 
         const t0 = performance.now();
         const traceId = createId('trace');
-        const nextVersion = version() + 1;
+        const nextVersion = (regenVersion.value ?? loaderData.value.version) + 1;
         const data = loaderData.value;
 
         try {

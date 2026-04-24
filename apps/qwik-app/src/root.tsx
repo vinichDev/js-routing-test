@@ -1,10 +1,5 @@
-import { component$, isDev } from '@builder.io/qwik';
-import {
-    QwikCityProvider,
-    RouterHead,
-    RouterOutlet,
-    ServiceWorkerRegister,
-} from '@builder.io/qwik-city';
+import { component$ } from '@builder.io/qwik';
+import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';
 import { InitialLoadMetrics } from './components/InitialLoadMetrics';
 
 export default component$(() => {
@@ -12,9 +7,8 @@ export default component$(() => {
         <QwikCityProvider>
             <head>
                 <meta charSet="utf-8" />
+                <title>Тестовый стенд — Qwik</title>
                 <link rel="stylesheet" href="/shared/global.css" />
-                <RouterHead />
-                {!isDev && <ServiceWorkerRegister />}
             </head>
             <body>
                 <div class="layout-container">

@@ -91,7 +91,8 @@ export const InitialLoadMetrics = component$(() => {
         }
 
         setTimeout(sendMetrics, 300);
-    }, { strategy: 'document-ready' });
+    });
 
-    return <></>;
+    // Нужен реальный DOM-элемент: intersection-observer не сработает на <></>
+    return <span style="position:absolute;top:0;left:0;width:1px;height:1px;pointer-events:none" aria-hidden="true" />;
 });
