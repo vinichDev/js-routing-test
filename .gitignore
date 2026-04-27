@@ -57,6 +57,7 @@ yarn-error.log*
 next-env.d.ts
 
 /docs
+/documentation
 /reports
 /infra/data/
 /infra/logs/
