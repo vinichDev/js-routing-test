@@ -61,5 +61,6 @@ next-env.d.ts
 /reports
 /infra/data/
 /infra/logs/
+/infra/docker-compose.override.yml
 
 /.agents/

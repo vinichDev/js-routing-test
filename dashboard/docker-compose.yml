@@ -1,0 +1,22 @@
+services:
+  dashboard-backend:
+    build:
+      context: ./backend
+    container_name: dashboard-backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # host.docker.internal → IP хоста; нужен для BENCH_HOST в infra-скриптах
+    volumes:
+      - ..:/project                                  # весь проект; infra/../services/ резолвится корректно
+      - /var/run/docker.sock:/var/run/docker.sock    # Docker daemon хоста
+    environment:
+      INFRA_DIR: /project/infra
+      PORT: 4000
+
+  dashboard-frontend:
+    build:
+      context: ./frontend
+    container_name: dashboard-frontend
+    ports:
+      - "5000:80"
+    depends_on:
+      - dashboard-backend

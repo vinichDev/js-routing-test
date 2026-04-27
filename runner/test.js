@@ -29,7 +29,7 @@ async function postJson(url, payload) {
 const RUN_CONFIG = {
     sutIds: (process.env.SUT_ID || 'next_app').split(','),
     modes: (process.env.RUNNER_MODES || 'cold,warm').split(','),
-    iterations: parseInt(process.env.RUNNER_ITERATIONS || '3', 10),
+    iterations: parseInt(process.env.RUNNER_ITERATIONS || '2', 10),
     regenCount: parseInt(process.env.RUNNER_REGEN_COUNT || '3', 10),
     headless: process.env.RUNNER_HEADLESS !== 'false'
 };

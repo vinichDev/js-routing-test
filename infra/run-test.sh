@@ -8,6 +8,8 @@ SUT_PROFILE=$1
 MODES=${2:-"cold,warm"}
 # Максимальное время ожидания готовности сервисов (секунды)
 HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-60}
+# Хост для проверки здоровья сервисов; переопределяется дашбордом при запуске из контейнера
+BENCH_HOST=${BENCH_HOST:-localhost}
 
 if [ -z "$SUT_PROFILE" ]; then
     echo "Использование: $0 <sut-profile> [modes]"
@@ -43,7 +45,7 @@ echo "=> Шаг 1: Переключение инфраструктуры на $S
 echo ""
 echo "=> Шаг 2: Ожидание готовности metrics-collector..."
 ELAPSED=0
-until curl -sf http://localhost:8090/health > /dev/null 2>&1; do
+until curl -sf http://${BENCH_HOST}:8090/health > /dev/null 2>&1; do
     if [ "$ELAPSED" -ge "$HEALTH_TIMEOUT" ]; then
         echo "❌ Ошибка: metrics-collector не ответил за ${HEALTH_TIMEOUT} секунд"
         exit 1
@@ -63,7 +65,7 @@ sleep 3
 echo ""
 echo "=> Шаг 3: Ожидание готовности SUT ($SUT_PROFILE) через proxy..."
 ELAPSED=0
-until curl -sf http://localhost:8000/ > /dev/null 2>&1; do
+until curl -sf http://${BENCH_HOST}:8000/ > /dev/null 2>&1; do
     if [ "$ELAPSED" -ge "$HEALTH_TIMEOUT" ]; then
         echo "❌ Ошибка: SUT ($SUT_PROFILE) не ответил за ${HEALTH_TIMEOUT} секунд"
         docker compose logs --tail=30 "$SUT_PROFILE" 2>/dev/null || true

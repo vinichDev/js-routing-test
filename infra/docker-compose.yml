@@ -22,7 +22,7 @@ services:
       PORT: 8090
       DATA_DIR: /data
     volumes:
-      - ./data:/data
+      - ${INFRA_DIR:-.}/data:/data
 
   # Инициализация SUT приложения.
   next-app:
@@ -324,9 +324,9 @@ services:
       - SUT_TARGET_PORT=${SUT_TARGET_PORT:-3000}
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
     volumes:
-      - ./nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
-      - ./logs/nginx:/var/log/nginx
-      - ./shared-static:/usr/share/nginx/html/shared:ro
+      - ${INFRA_DIR:-.}/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
+      - ${INFRA_DIR:-.}/logs/nginx:/var/log/nginx
+      - ${INFRA_DIR:-.}/shared-static:/usr/share/nginx/html/shared:ro
     depends_on:
       - data-api
       - metrics-collector
@@ -341,7 +341,7 @@ services:
     environment:
       - SUT_ID=${SUT_ID:-next_app,remix_app,remix3_app,vanilla_app}
       - RUNNER_MODES=${RUNNER_MODES:-cold,warm}
-      - RUNNER_ITERATIONS=${RUNNER_ITERATIONS:-5}
+      - RUNNER_ITERATIONS=${RUNNER_ITERATIONS:-2}
       - RUNNER_REGEN_COUNT=${RUNNER_REGEN_COUNT:-3}
       - RUNNER_HEADLESS=${RUNNER_HEADLESS:-true}
     depends_on:
