@@ -19,6 +19,22 @@ out
 
 # production
 build
+dist
+
+# sveltekit
+.svelte-kit
+
+# framework build outputs / caches
+.output
+.nuxt
+.astro
+.solid
+.vinxi
+.angular
+.react-router
+
+# qwik server build
+apps/qwik-app/server/
 
 # misc
 .DS_Store

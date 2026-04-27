@@ -1,6 +1,0 @@
-{
-	"/": [],
-	"/list": [
-		"src/routes/list/+page.server.js"
-	]
-}
