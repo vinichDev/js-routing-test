@@ -1,0 +1,23 @@
+services:
+  dashboard-backend:
+    image: ghcr.io/vinichdev/dashboard-backend:latest
+    container_name: dashboard-backend
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ${INFRA_DIR}:/project/infra
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKER_CONFIG}:/root/.docker/config.json:ro
+    environment:
+      INFRA_DIR: /project/infra
+      PORT: 4000
+
+  dashboard-frontend:
+    image: ghcr.io/vinichdev/dashboard-frontend:latest
+    container_name: dashboard-frontend
+    restart: unless-stopped
+    ports:
+      - "5000:80"
+    depends_on:
+      - dashboard-backend
