@@ -45,6 +45,7 @@ const SUTS = [
 
 // Текущий активный процесс — только один одновременно
 let currentProcess = null;
+let currentActionLabel = null;
 
 /** Убить текущий процесс если он есть */
 function killCurrent() {
@@ -52,11 +53,13 @@ function killCurrent() {
     try { currentProcess.kill('SIGTERM'); } catch {}
     currentProcess = null;
   }
+  currentActionLabel = null;
 }
 
 /** Запустить процесс и стримить stdout/stderr через SSE */
-function spawnWithSSE(res, cmd, args, cwd) {
+function spawnWithSSE(res, cmd, args, cwd, label = null) {
   killCurrent();
+  currentActionLabel = label;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -81,7 +84,7 @@ function spawnWithSSE(res, cmd, args, cwd) {
   proc.stdout.on('data', send);
   proc.stderr.on('data', send);
   proc.on('close', (code) => {
-    if (currentProcess === proc) currentProcess = null;
+    if (currentProcess === proc) { currentProcess = null; currentActionLabel = null; }
     res.write(`data: [done] exit ${code}\n\n`);
     res.end();
   });
@@ -103,27 +106,46 @@ app.get('/api/sut/status', (req, res) => {
   });
 });
 
+app.get('/api/action/status', (req, res) => {
+  res.json({ running: !!currentProcess, label: currentActionLabel });
+});
+
 app.post('/api/action/cancel', (req, res) => {
   killCurrent();
   res.json({ ok: true });
+});
+
+app.post('/api/sut/stop', (req, res) => {
+  const proc = spawn('docker', ['ps', '--format', '{{.Names}}']);
+  let output = '';
+  proc.stdout.on('data', d => output += d);
+  proc.on('close', () => {
+    const running = SUTS.filter(sut => output.includes(sut));
+    if (running.length === 0) return res.json({ ok: true, stopped: [] });
+    let done = 0;
+    running.forEach(sut => {
+      const p = spawn('docker', ['stop', sut]);
+      p.on('close', () => { if (++done === running.length) res.json({ ok: true, stopped: running }); });
+    });
+  });
 });
 
 // Body: { sut: "next-app" }
 app.post('/api/sut/switch', (req, res) => {
   const { sut } = req.body;
   if (!SUTS.includes(sut)) return res.status(400).json({ error: 'Unknown SUT' });
-  spawnWithSSE(res, 'bash', ['./switch-sut.sh', sut], INFRA_DIR);
+  spawnWithSSE(res, 'bash', ['./switch-sut.sh', sut], INFRA_DIR, `Переключение SUT: ${sut}`);
 });
 
 // Body: { sut: "next-app", modes: "cold,warm" }
 app.post('/api/test/run', (req, res) => {
   const { sut, modes = 'cold,warm' } = req.body;
   if (!SUTS.includes(sut)) return res.status(400).json({ error: 'Unknown SUT' });
-  spawnWithSSE(res, 'bash', ['./run-test.sh', sut, modes], INFRA_DIR);
+  spawnWithSSE(res, 'bash', ['./run-test.sh', sut, modes], INFRA_DIR, `Тест: ${sut} [${modes}]`);
 });
 
 app.post('/api/test/run-all', (req, res) => {
-  spawnWithSSE(res, 'bash', ['./run-benchmarks.sh'], INFRA_DIR);
+  spawnWithSSE(res, 'bash', ['./run-benchmarks.sh'], INFRA_DIR, 'Все тесты');
 });
 
 /** Читает metrics.log и агрегирует mean по каждому SUT */

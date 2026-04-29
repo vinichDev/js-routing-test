@@ -5,7 +5,9 @@ const api = axios.create({ baseURL: '/api' });
 export const getSutList = () => api.get('/sut/list');
 export const getSutStatus = () => api.get('/sut/status');
 export const getMetricsSummary = () => api.get('/metrics/summary');
+export const getActionStatus = () => api.get('/action/status');
 export const cancelAction = () => api.post('/action/cancel');
+export const stopSut = () => api.post('/sut/stop');
 
 /** SSE через fetch. Возвращает AbortController для отмены потока */
 export const streamPost = (url, body, onLine, onDone) => {

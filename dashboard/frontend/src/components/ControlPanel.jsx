@@ -3,7 +3,7 @@ import { switchSut, runTest, runAll, cancelAction } from '../api';
 
 const COOLDOWN_MS = 3000;
 
-export default function ControlPanel({ suts, running, setRunning, appendLog, setLogs, onDone }) {
+export default function ControlPanel({ suts, running, setRunning, setActionLabel, appendLog, setLogs, onDone }) {
   const [selected, setSelected] = useState('next-app');
   const [modes, setModes] = useState('cold,warm');
   const [cooldown, setCooldown] = useState(false);
@@ -36,10 +36,11 @@ export default function ControlPanel({ suts, running, setRunning, appendLog, set
   };
 
   /** Запустить действие: отменить предыдущее, очистить лог, включить cooldown */
-  const start = async (fn) => {
+  const start = async (fn, label) => {
     await cancel();
     setLogs([]);
     setRunning(true);
+    setActionLabel(label);
     startCooldown();
     abortRef.current = fn();
   };
@@ -79,7 +80,7 @@ export default function ControlPanel({ suts, running, setRunning, appendLog, set
         </div>
 
         <button
-          onClick={() => start(() => switchSut(selected, appendLog, onDone))}
+          onClick={() => start(() => switchSut(selected, appendLog, onDone), `Переключение SUT: ${selected}`)}
           disabled={isBlocked}
           className="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 disabled:opacity-50"
         >
@@ -87,7 +88,7 @@ export default function ControlPanel({ suts, running, setRunning, appendLog, set
         </button>
 
         <button
-          onClick={() => start(() => runTest(selected, modes, appendLog, onDone))}
+          onClick={() => start(() => runTest(selected, modes, appendLog, onDone), `Тест: ${selected} [${modes}]`)}
           disabled={isBlocked}
           className="px-4 py-2 bg-emerald-600 text-white text-sm rounded hover:bg-emerald-700 disabled:opacity-50"
         >
@@ -95,7 +96,7 @@ export default function ControlPanel({ suts, running, setRunning, appendLog, set
         </button>
 
         <button
-          onClick={() => start(() => runAll(appendLog, onDone))}
+          onClick={() => start(() => runAll(appendLog, onDone), 'Все тесты')}
           disabled={isBlocked}
           className="px-4 py-2 bg-gray-700 text-white text-sm rounded hover:bg-gray-800 disabled:opacity-50"
         >
@@ -105,11 +106,6 @@ export default function ControlPanel({ suts, running, setRunning, appendLog, set
         {cooldown && (
           <span className="text-sm text-gray-400">
             Новое действие через {cooldownLeft} сек...
-          </span>
-        )}
-        {running && !cooldown && (
-          <span className="text-sm text-indigo-600 animate-pulse">
-            Выполняется...
           </span>
         )}
       </div>
