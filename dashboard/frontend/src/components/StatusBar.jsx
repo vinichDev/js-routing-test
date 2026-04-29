@@ -2,8 +2,8 @@
  * Полоса статуса: показывает активный SUT (со ссылкой и кнопкой остановки)
  * и текущее выполняемое действие (с кнопкой отмены).
  */
-export default function StatusBar({ activeSut, running, actionLabel, onStopSut, onCancelAction }) {
-  const sutUrl = `http://${window.location.hostname}:8000`;
+export default function StatusBar({ activeSut, stoppingSut, running, actionLabel, onStopSut, onCancelAction }) {
+  const sutUrl = `${window.location.protocol}//${window.location.hostname}:8000`;
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 px-5 py-3 flex flex-wrap gap-x-8 gap-y-2 items-center">
@@ -19,12 +19,16 @@ export default function StatusBar({ activeSut, running, actionLabel, onStopSut, 
             >
               {activeSut}
             </a>
-            <button
-              onClick={onStopSut}
-              className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
-            >
-              Остановить
-            </button>
+            {stoppingSut ? (
+              <span className="text-xs text-red-500 animate-pulse">Останавливаем...</span>
+            ) : (
+              <button
+                onClick={onStopSut}
+                className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+              >
+                Остановить
+              </button>
+            )}
           </>
         ) : (
           <span className="text-sm text-gray-400">нет активного SUT</span>

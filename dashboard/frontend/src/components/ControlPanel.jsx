@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { switchSut, runTest, runAll, cancelAction } from '../api';
 
-const COOLDOWN_MS = 3000;
+const COOLDOWN_S = 3;
 
-export default function ControlPanel({ suts, running, setRunning, setActionLabel, appendLog, setLogs, onDone }) {
+export default function ControlPanel({ suts, setRunning, setActionLabel, onSseStart, appendLog, setLogs, onDone }) {
   const [selected, setSelected] = useState('next-app');
   const [modes, setModes] = useState('cold,warm');
   const [cooldown, setCooldown] = useState(false);
@@ -11,11 +11,11 @@ export default function ControlPanel({ suts, running, setRunning, setActionLabel
   const abortRef = useRef(null);  // AbortController текущего SSE-потока
   const timerRef = useRef(null);  // таймер обратного отсчёта
 
-  /** Запустить блокировку кнопок на COOLDOWN_MS */
+  /** Запустить блокировку кнопок на COOLDOWN_S секунд */
   const startCooldown = () => {
     setCooldown(true);
-    setCooldownLeft(3);
-    let left = 3;
+    setCooldownLeft(COOLDOWN_S);
+    let left = COOLDOWN_S;
     timerRef.current = setInterval(() => {
       left -= 1;
       setCooldownLeft(left);
@@ -41,6 +41,7 @@ export default function ControlPanel({ suts, running, setRunning, setActionLabel
     setLogs([]);
     setRunning(true);
     setActionLabel(label);
+    onSseStart();
     startCooldown();
     abortRef.current = fn();
   };
